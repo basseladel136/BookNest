@@ -1,0 +1,188 @@
+/* ==================== Background ==================== */
+body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #FFF9E8 0%, #FFFBEB 100%);
+}
+
+/* ==================== Navbar ==================== */
+nav.navbar {
+    border-bottom: 3px solid #EA8802;
+    background-color: #fff !important;
+}
+
+/* ==================== Buttons ==================== */
+.register-btn,
+.btn-orange,
+.signup-btn {
+    background-color: #EA8802 !important;
+    /* برتقالي */
+    color: #fff !important;
+    /* نص أبيض */
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    /* حواف مستديرة */
+    padding: 0.75rem 1.5rem;
+    /* padding عمودي وأفقي مناسب */
+    width: 100%;
+    /* يمتد بعرض الحاوية */
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.register-btn:hover,
+.btn-orange:hover,
+.signup-btn:hover,
+.register-btn:focus,
+.btn-orange:focus,
+.signup-btn:focus {
+    background: #ffa733 !important;
+    color: #fff !important;
+}
+
+/* زرار تحذيري */
+.btn-warning {
+    background-color: #F2931C !important;
+    border-color: #F2931C !important;
+    color: #fff !important;
+}
+
+/* زرار تحذيري بدون خلفية */
+.btn-outline-warning {
+    border-color: #F2931C !important;
+    color: #F2931C !important;
+}
+
+.btn-outline-warning:hover,
+.btn-outline-warning:focus {
+    background: #F2931C !important;
+    color: #fff !important;
+}
+
+/* أزرار التصنيفات */
+.category-btn {
+    background: #fff;
+    color: #333;
+    border: none;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: color 0.15s, background 0.15s, box-shadow 0.15s;
+    padding: 0.45rem 1.4rem;
+}
+
+.category-btn:hover,
+.category-btn:focus {
+    color: #F2931C;
+    background: #fff7e7;
+    box-shadow: 0 2px 8px #ffd6a9bb;
+}
+
+.category-btn.active-category {
+    background: #222 !important;
+    color: #fff !important;
+}
+
+/* ==================== Cards ==================== */
+.card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 18px 0 rgba(0, 0, 0, 0.08);
+    border: none;
+    padding: 2rem;
+    /* زيادة الحشوة الداخلية */
+}
+
+/* ==================== Links ==================== */
+.card a:not(.btn),
+.link-orange,
+.login-link {
+    color: #ea8802 !important;
+    text-decoration: none;
+    transition: color 0.3s, text-decoration 0.2s;
+}
+
+.card a:hover,
+.card a:focus,
+.link-orange:hover,
+.link-orange:focus,
+.login-link:hover,
+.login-link:focus {
+    color: #c97200 !important;
+    text-decoration: underline !important;
+}
+
+/* ==================== Forms ==================== */
+/* Checkbox */
+.form-check-input:checked {
+    background-color: #ea8802;
+    border-color: #ea8802;
+}
+
+/* Input focus */
+.form-control:focus {
+    border-color: #ea8802;
+    box-shadow: 0 0 0 0.16rem #ea880021;
+}
+
+/* ==================== Star Ratings ==================== */
+.stars-outer {
+    position: relative;
+    display: inline-block;
+    font-family: "Font Awesome 6 Free";
+    font-weight: 400;
+}
+
+.stars-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.stars-outer::before {
+    content: "\f005 \f005 \f005 \f005 \f005";
+    color: #ccc;
+}
+
+.stars-inner::before {
+    content: "\f005 \f005 \f005 \f005 \f005";
+    color: #f8ce0b;
+}
+
+.cart-item-card,
+.summary-card,
+.empty-cart-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: none;
+}
+
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    border-radius: 8px !important;
+}
+
+.quantity-btn {
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+}
+
+.remove-btn {
+    color: #dc3545;
+    font-size: 1.2rem;
+}
+
+.navbar-brand svg {
+    width: 28px;
+    height: 28px;
+    margin-right: 7px;
+}
