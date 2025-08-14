@@ -5,49 +5,32 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\CheckoutController; // إذا عندك كنترولر خاص للشيك أوت
 
-/*
-| الصفحة الرئيسية
-*/
-
+// الصفحة الرئيسية
 Route::get('/', [BookController::class, 'index'])->name('home');
 
-/*
-| إدارة الكتب (محمية بتسجيل الدخول)
-*/
+// إدارة الكتب (محمية بتسجيل الدخول)
 Route::middleware('auth')->group(function () {
     Route::resource('books', BookController::class);
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
 });
 
-/*
-| التسجيل
-*/
-Route::get('/register', [AuthController::class, 'showRegisterForm'])
+// التسجيل
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-    ->name('register');
+// تسجيل الدخول
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/auth/login', [AuthController::class, 'login'])->name('login.post');
 
-Route::post('/register', [AuthController::class, 'register'])
+// Quick Password Reset (عرض الفورم ومعالجته)
+Route::get('password/quick-reset', [AuthController::class, 'showQuickResetForm'])->name('password.request');
+Route::post('password/quick-reset', [AuthController::class, 'quickResetPassword'])->name('password.update');
 
-    ->name('register.post');
+// إعادة تعيين كلمة المرور باستخدام التوكن (اختياري)
+Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 
-/*
-| تسجيل الدخول
-*/
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::post('/auth/login', [AuthController::class, 'login'])
-
-    ->name('login.post');
-Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
-Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
-
-/*
-| تسجيل الخروج
-*/
+// تسجيل الخروج
 Route::post('/logout', function () {
     Auth::logout();
     request()->session()->invalidate();
@@ -55,30 +38,23 @@ Route::post('/logout', function () {
     return redirect()->route('login');
 })->name('logout');
 
-/*
-| مسارات السلة
-*/
-// لا تكرّر المسارات!
-// مرّة واحدة فقط لكل أمر:
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add/{book}', [CartController::class, 'add'])->name('cart.add');
-Route::patch('/cart/update', [CartController::class, 'update'])->name('cart.update');
-Route::delete('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
-Route::get('/cart/checkout', [CartController::class, 'checkoutView'])->name('cart.checkout');
+// مسارات السلة والشيك أوت (محمية بتسجيل الدخول)
+Route::middleware('auth')->group(function () {
+    // السلة
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add/{book}', [CartController::class, 'add'])->name('cart.add');
+    Route::patch('/cart/update', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+    Route::get('/cart/checkout', [CartController::class, 'checkoutView'])->name('cart.checkout');
 
-/*
-| مسارات الشيك أوت
-*/
+    // الشيك أوت
+    Route::get('/checkout', function () {
+        return view('cart.checkout');
+    })->name('checkout.form');
 
-// عرض صفحة الفورم (تفتح resources/views/cart/checkout.blade.php)
-Route::get('/checkout', function () {
-    return view('cart.checkout');
-})->name('checkout.form');
+    Route::post('/checkout', [CartController::class, 'process'])->name('checkout.process');
 
-// معالجة (حفظ) بيانات الطلب والدفع
-Route::post('/checkout', [CartController::class, 'process'])->name('checkout.process');
-
-// صفحة نجاح الطلب بعد الحفظ
-Route::get('/checkout/success', function () {
-    return view('checkout.success');
-})->name('checkout.success');
+    Route::get('/checkout/success', function () {
+        return view('checkout.success');
+    })->name('checkout.success');
+});

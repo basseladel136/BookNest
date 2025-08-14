@@ -9,8 +9,8 @@
 </head>
 
 <body>
-    <!-- تم فتح البودي هنا، في المكان الصحيح -->
     <div class="min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light p-3">
+
         <!-- Logo -->
         <div class="d-flex align-items-center justify-content-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#ea8802" stroke-width="2.2" viewBox="0 0 24 24"
@@ -21,12 +21,20 @@
             <span style="color: black; font-weight: bold; font-size: 1.5rem; margin-left: 7px;">BookNest</span>
         </div>
 
-        <!-- هذا هو الكارد، أضفت له كلاسات لتحديد العرض -->
+        <!-- Card -->
         <div class="bg-white p-4 p-md-5 rounded shadow-sm main-card w-100" style="max-width: 500px;">
             <h2 class="fw-bold text-center">Welcome back</h2>
             <p class="text-center text-muted mb-4" style="font-size: 0.98rem;">
                 Sign in to your account to continue your reading journey
             </p>
+
+            {{-- عرض رسالة خطأ تسجيل الدخول --}}
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <strong>Oops!</strong> Your credentials are incorrect.
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('login.post') }}">
                 @csrf
                 <div class="mb-3">
@@ -55,17 +63,33 @@
                 </div>
                 <button type="submit" class="btn btn-orange w-100 fw-semibold">Sign In</button>
             </form>
+
             <div class="text-center mt-4">
                 <span>Don't have an account?</span>
                 <a href="{{ route('register') }}" class="fw-semibold link-orange">Sign up</a>
             </div>
         </div>
     </div>
-    <!-- Bootstrap JS for icons (optional, for the eye icon) -->
-    <script src="{{asset('js/fundamentals.js')}}"></script>
 
+    <script src="{{ asset('js/fundamentals.js') }}"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('toggleIcon');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
     </script>
+
 </body>
 
 </html>

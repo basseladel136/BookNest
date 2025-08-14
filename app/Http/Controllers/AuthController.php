@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
+    // صفحة التسجيل
     public function showRegisterForm()
     {
         return view("auth.register");
@@ -62,22 +63,30 @@ class AuthController extends Controller
         ]);
     }
 
-    // صفحة نسيت كلمة المرور
-    public function showForgotPasswordForm()
+    // Quick Reset Password - عرض الفورم
+    public function showQuickResetForm()
     {
-        return view('auth.forgot-password');
+        return view('auth.passwords.quick_reset');
     }
 
-    // إرسال رابط إعادة تعيين الباسورد
-    public function sendResetLink(Request $request)
+    // Quick Reset Password - تحديث الباسورد مباشرة
+    public function quickResetPassword(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|confirmed|min:8',
+        ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
+        return redirect()->route('login')->with('status', 'Password updated successfully!');
     }
-   
+
+    // إعادة تعيين كلمة المرور بالتوكن (اختياري)
+    public function showResetForm($token)
+    {
+        return view('auth.passwords.reset', ['token' => $token]);
+    }
 }

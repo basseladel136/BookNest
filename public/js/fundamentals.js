@@ -86,34 +86,33 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // تغيير نص زر الدفع بناءً على طريقة الدفع المختارة
+    // عناصر التحكم
     const paymentMethodInputs = document.querySelectorAll(
         'input[name="payment_method"]'
     );
-    const visaCardDetails = document.getElementById("visa_card_details");
     const payButton = document.getElementById("pay-button");
 
     console.log(paymentMethodInputs);
-    console.log(visaCardDetails);
     console.log(payButton);
 
-    if (paymentMethodInputs.length > 0 && visaCardDetails && payButton) {
+    if (paymentMethodInputs.length > 0 && payButton) {
         paymentMethodInputs.forEach((radio) => {
             radio.addEventListener("change", (e) => {
                 const selectedValue = e.target.value;
                 console.log(selectedValue);
 
-                if (selectedValue === "visa_card") {
-                    visaCardDetails.style.display = "block";
-                    payButton.textContent = "Pay with Visa";
-                } else {
-                    visaCardDetails.style.display = "none";
-                    if (selectedValue === "paypal") {
-                        payButton.textContent = "Pay with PayPal";
-                    } else if (selectedValue === "cod") {
-                        payButton.textContent = "Place Order";
-                    }
+                // تحديث نص الزر حسب طريقة الدفع
+                if (selectedValue === "paypal") {
+                    payButton.textContent = "Pay with PayPal";
+                } else if (selectedValue === "cod") {
+                    payButton.textContent = "Place Order";
                 }
             });
+        });
+
+        // إظهار تنبيه عند الضغط على الزر
+        payButton.addEventListener("click", function () {
+            alert("Order placed successfully!");
         });
     } else {
         console.log("One or more elements not found");

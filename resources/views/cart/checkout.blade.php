@@ -124,7 +124,11 @@
                     </div>
 
 
-                    <button type="submit" id="pay-button" class="btn btn-warning">Place Order</button>
+                    <button type="submit" id="pay-button" class="btn btn-warning"
+                        onclick="alert('Order placed successfully!');">
+                        Place Order
+                    </button>
+
                     </form>
                 </div>
             </div>
