@@ -60,5 +60,11 @@ Route::middleware('auth')->group(function () {
         return view('checkout.success');
     })->name('checkout.success');
 });
-    Route::get('/books/live-search', [BookController::class, 'liveSearch'])
+Route::get('/books/live-search', [BookController::class, 'liveSearch'])
     ->name('books.live-search');
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/books', function () {
+        return view('admin.books');
+    })->name('admin.books');
+});

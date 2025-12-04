@@ -56,13 +56,17 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('books.index'));
-        }
+       if (Auth::attempt($credentials)) {
+    $request->session()->regenerate();
 
+    if (Auth::user()->role === 'admin') {
+        return redirect()->route('admin.books'); // الأدمين
+    }
+
+    return redirect()->route('home'); // المستخدم العادي
+}
         return back()->withErrors([
-            'email' => 'Invalid credentials.',
+            'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
     }
 
