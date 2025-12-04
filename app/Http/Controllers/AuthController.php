@@ -7,13 +7,15 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     // صفحة التسجيل
     public function showRegisterForm()
     {
-        return view("auth.register");
+        return view('auth.register');
     }
 
     // تسجيل مستخدم جديد
@@ -34,6 +36,7 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate(); // حماية session
 
         return redirect()->route('books.index')
             ->with('success', 'Welcome, ' . e($user->first_name . '!'));
@@ -49,8 +52,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|min:6',
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:6',
         ]);
 
         if (Auth::attempt($credentials)) {
@@ -60,33 +63,67 @@ class AuthController extends Controller
 
         return back()->withErrors([
             'email' => 'Invalid credentials.',
-        ]);
+        ])->onlyInput('email');
     }
 
-    // Quick Reset Password - عرض الفورم
-    public function showQuickResetForm()
+    // تسجيل الخروج
+    public function logout(Request $request)
     {
-        return view('auth.passwords.quick_reset');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 
-    // Quick Reset Password - تحديث الباسورد مباشرة
-    public function quickResetPassword(Request $request)
+    // صفحة طلب إعادة تعيين كلمة المرور
+    public function showForgotPasswordForm()
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'password' => 'required|confirmed|min:8',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return redirect()->route('login')->with('status', 'Password updated successfully!');
+        return view('auth.passwords.email'); // standard Laravel view
     }
 
-    // إعادة تعيين كلمة المرور بالتوكن (اختياري)
+    // إرسال رابط إعادة التعيين بالبريد
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email|exists:users,email']);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
+    }
+
+    // صفحة إعادة تعيين كلمة المرور باستخدام token
     public function showResetForm($token)
     {
         return view('auth.passwords.reset', ['token' => $token]);
+    }
+
+    // تحديث كلمة المرور
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->password = Hash::make($password);
+                $user->setRememberToken(Str::random(60));
+                $user->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
     }
 }

@@ -6,13 +6,18 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 
-// الصفحة الرئيسية
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// الصفحة الرئيسية (أي شخص ممكن يشوفها)
 Route::get('/', [BookController::class, 'index'])->name('home');
 
 // إدارة الكتب (محمية بتسجيل الدخول)
 Route::middleware('auth')->group(function () {
     Route::resource('books', BookController::class);
-    Route::get('/books', [BookController::class, 'index'])->name('books.index');
 });
 
 // التسجيل
@@ -45,16 +50,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/cart/add/{book}', [CartController::class, 'add'])->name('cart.add');
     Route::patch('/cart/update', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
-    Route::get('/cart/checkout', [CartController::class, 'checkoutView'])->name('cart.checkout');
 
     // الشيك أوت
-    Route::get('/checkout', function () {
-        return view('cart.checkout');
-    })->name('checkout.form');
-
+    Route::get('/cart/checkout', [CartController::class, 'checkoutView'])->name('cart.checkout');
     Route::post('/checkout', [CartController::class, 'process'])->name('checkout.process');
 
+    // صفحة نجاح الشيك أوت
     Route::get('/checkout/success', function () {
         return view('checkout.success');
     })->name('checkout.success');
 });
+    Route::get('/books/live-search', [BookController::class, 'liveSearch'])
+    ->name('books.live-search');
