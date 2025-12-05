@@ -53,15 +53,18 @@ Route::middleware('auth')->group(function () {
 
     // الشيك أوت
     Route::get('/cart/checkout', [CartController::class, 'checkoutView'])->name('cart.checkout');
-    Route::post('/checkout', [CartController::class, 'process'])->name('checkout.process');
+    Route::post('/checkout', [CartController::class, 'processCheckout'])->name('checkout.process');
+
 
     // صفحة نجاح الشيك أوت
     Route::get('/checkout/success', function () {
         return view('checkout.success');
     })->name('checkout.success');
 });
-Route::get('/books/live-search', [BookController::class, 'liveSearch'])
-    ->name('books.live-search');
+// routes/web.php
+Route::get('/search', [BookController::class, 'search'])->name('books.search');
+
+
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/books', function () {

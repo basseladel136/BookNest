@@ -24,8 +24,9 @@ class Checkout extends Model
     // علاقة checkout بالكتب
     public function books()
     {
-        return $this->belongsToMany(Book::class)->withPivot('quantity')->withTimestamps();
+        return $this->belongsToMany(Book::class, 'book_checkout')->withPivot('quantity')->withTimestamps();
     }
+
 
 
     // علاقة checkout بالمستخدم (اختياري)

@@ -23,6 +23,8 @@ class BookController extends Controller
             'category_id' => 'required|exists:categories,id',
             'sale_price' => 'nullable|numeric',
             'cover' => 'nullable|string',
+            'rating' => 'nullable|numeric|min:0|max:5',
+            'reviews_count' => 'nullable|integer|min:0',
         ]);
 
         $book = Book::create($request->all());

@@ -2,8 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\BookController;
+use App\Http\Controllers\Api\Admin\AuthController;
 
-    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+// Login Admin
+Route::post('Api/admin/login', [AuthController::class, 'login']);
+
+
+// Admin CRUD routes
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::apiResource('books', BookController::class);
 });
-

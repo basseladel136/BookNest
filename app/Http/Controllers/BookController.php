@@ -9,37 +9,45 @@ use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
+    // الصفحة الرئيسية - عرض كل الكتب + البحث حسب التصنيف أو الاسم
     public function index(Request $request)
     {
-        $category = $request->query('category');
-        $search = $request->query('search');
+        $categoryId = $request->input('category_id');
+        $search = $request->input('search');
 
         $books = Book::with('category')
-            ->when($category, function ($query) use ($category) {
-                return $query->whereHas('category', function ($q) use ($category) {
-                    $q->where('name', $category); // ← البحث بالـ name وليس id
-                });
+            ->when($categoryId, function ($query, $categoryId) {
+                return $query->where('category_id', $categoryId);
             })
-            ->when($search, function ($query) use ($search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('author', 'like', "%{$search}%");
-                });
+            ->when($search, function ($query, $search) {
+                return $query->where('title', 'like', "%{$search}%")
+                    ->orWhere('author', 'like', "%{$search}%");
             })
             ->get();
 
-        $categories = Category::all();
+        // Prepare recommendations if search returns empty
+        $recommended = collect();
+        if ($books->isEmpty()) {
+            if ($categoryId) {
+                $recommended = Book::where('category_id', $categoryId)->take(5)->get();
+            } else {
+                $recommended = Book::latest()->take(5)->get();
+            }
+        }
 
-        return view('books.index', compact('books', 'categories'));
+        $categories = Category::all();
+        return view('books.index', compact('books', 'categories', 'recommended'));
     }
 
 
+    // عرض form إنشاء كتاب جديد
     public function create()
     {
         $categories = Category::all();
         return view('books.create', compact('categories'));
     }
 
+    // حفظ كتاب جديد
     public function store(Request $request)
     {
         $request->validate([
@@ -70,12 +78,14 @@ class BookController extends Controller
         return redirect()->route('books.index');
     }
 
+    // عرض كتاب محدد
     public function show($id)
     {
         $book = Book::with('category')->findOrFail($id);
         return view('books.show', compact('book'));
     }
 
+    // عرض form تعديل كتاب
     public function edit($id)
     {
         $book = Book::findOrFail($id);
@@ -83,6 +93,7 @@ class BookController extends Controller
         return view('books.edit', compact('book', 'categories'));
     }
 
+    // تحديث كتاب
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -117,6 +128,7 @@ class BookController extends Controller
         return redirect()->route('books.index');
     }
 
+    // حذف كتاب
     public function destroy($id)
     {
         $book = Book::findOrFail($id);
@@ -128,15 +140,32 @@ class BookController extends Controller
         return redirect()->route('books.index');
     }
 
-    public function liveSearch(Request $request)
-{
-    $q = $request->get('q');
+    // بحث + توصيات
+    public function search(Request $request)
+    {
+        $query = $request->input('search');
+        $categoryId = $request->input('category_id');
 
-    $books = Book::when($q, function ($query, $q) {
-            $query->where('title', 'like', $q.'%');
+        // جلب الكتب المتوافقة مع البحث
+        $books = Book::when($query, function ($q) use ($query) {
+            $q->where('title', 'like', "%{$query}%")
+                ->orWhere('author', 'like', "%{$query}%");
+        })->get();
+
+        $categories = Category::all();
+
+        if ($books->isNotEmpty()) {
+            // لو فيه نتائج، عرضها
+            return view('books.index', compact('books', 'categories'));
+        }
+
+        // لو مفيش نتائج، عرض توصيات
+        $recommended = Book::when($categoryId, function ($q) use ($categoryId) {
+            $q->where('category_id', $categoryId);
         })
-        ->get();
+            ->take(5)
+            ->get();
 
-    return view('partials.books_list', compact('books'));
-}
+        return view('books.noresult', compact('recommended', 'query', 'categories'));
+    }
 }

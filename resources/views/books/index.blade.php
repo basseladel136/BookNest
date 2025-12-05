@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home | BookNest</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
@@ -11,10 +13,11 @@
 </head>
 
 <body>
+    <!--=============== NAVBAR ===============-->
     <nav class="navbar navbar-light bg-white border-bottom py-1">
         <div class="container">
             <!-- Logo + Site Name -->
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('books.index') }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="#EA8802"
                     stroke-width="2.2" viewBox="0 0 24 24">
                     <path d="M4 6a2 2 0 0 1 2-2h5v16l-1.25-1.17A4 4 0 0 0 6 18H4z" />
@@ -24,21 +27,33 @@
             </a>
 
             <!-- Search box -->
-            <form method="GET" action="{{ route('books.index') }}" class="d-flex flex-grow-1 mx-3"
-                style="max-width:500px">
-                <input id="bookSearch" class="form-control border-warning bg-light" type="search" name="search"
-                    value="{{ request('search') }}" placeholder="Search books, authors..." aria-label="Search">
-                <button class="btn btn-warning ms-2" type="submit">Search</button>
-            </form>
+            <div class="d-flex justify-content-center mb-4">
+                <form method="GET" action="{{ route('books.index') }}" class="d-flex flex-grow-1 mx-3"
+                    style="max-width:600px">
+                    <!-- Search Input -->
+                    <input id="bookSearch" class="form-control border-warning bg-light" type="search" name="search"
+                        value="{{ request('search') }}" placeholder="Search books, authors..." aria-label="Search">
+
+                    <!-- Category Dropdown -->
+                    <select name="category_id" class="form-select border-warning ms-2" style="width:180px;">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                                {{ $cat->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <!-- Submit Button -->
+                    <button class="btn btn-warning ms-2" type="submit">Search</button>
+                </form>
+            </div>
 
             <!-- Nav Links and Buttons -->
             <ul class="navbar-nav flex-row align-items-center gap-2">
                 @guest
                     <li class="nav-item d-flex align-items-center">
-                        <svg width="20" height="20" fill="currentColor" class="bi bi-person me-1" viewBox="0 0 16 16">
-                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                            <path fill-rule="evenodd" d="M8 9a5 5 0 0 0-5 5v1h10v-1a5 5 0 0 0-5-5z" />
-                        </svg>
+                        <i class="fas fa-user me-1"></i>
                         <a class="nav-link px-1" href="{{ route('login') }}">Login</a>
                     </li>
                     <li class="nav-item">
@@ -60,10 +75,7 @@
                 <li class="nav-item ms-2">
                     <a class="btn btn-outline-warning" style="padding:.28rem .6rem;border-width:2px"
                         href="{{ route('cart.index') }}">
-                        <svg width="20" height="20" fill="#F2931C" class="bi bi-cart" viewBox="0 0 16 16">
-                            <path
-                                d="M0 1.5A.5.5 0 0 1 .5 1h1a.5.5 0 0 1 .485.379L2.89 5H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.491-.408L1.01 2H.5a.5.5 0 0 1-.5-.5zm3.14 5l1.25 6.607A.5.5 0 0 0 4.86 13h7.278a.5.5 0 0 0 .49-.393L14.89 6H3.14z" />
-                        </svg>
+                        <i class="fas fa-shopping-cart text-warning"></i>
                     </a>
                 </li>
             </ul>
@@ -83,46 +95,26 @@
                     class="btn px-4 fw-semibold category-btn {{ !request('category') ? 'active-category' : '' }}">
                     All Books
                 </a>
-                <a href="{{ route('books.index', ['category' => 'Fantasy']) }}"
-                    class="btn px-4 fw-semibold category-btn {{ request('category') == 'Fantasy' ? 'active-category' : '' }}">
-                    Fantasy
-                </a>
-                <a href="{{ route('books.index', ['category' => 'Horror']) }}"
-                    class="btn px-4 fw-semibold category-btn {{ request('category') == 'Horror' ? 'active-category' : '' }}">
-                    Horror
-                </a>
-                <a href="{{ route('books.index', ['category' => 'Mystery']) }}"
-                    class="btn px-4 fw-semibold category-btn {{ request('category') == 'Mystery' ? 'active-category' : '' }}">
-                    Mystery
-                </a>
-                <a href="{{ route('books.index', ['category' => 'Dystopian Fiction']) }}"
-                    class="btn px-4 fw-semibold category-btn {{ request('category') == 'Dystopian Fiction' ? 'active-category' : '' }}">
-                    Dystopian Fiction
-                </a>
-                <a href="{{ route('books.index', ['category' => 'Science Fiction']) }}"
-                    class="btn px-4 fw-semibold category-btn {{ request('category') == 'Science Fiction' ? 'active-category' : '' }}">
-                    Science Fiction
-                </a>
+                @foreach($categories as $cat)
+                    <a href="{{ route('books.index', ['category' => $cat->name]) }}"
+                        class="btn px-4 fw-semibold category-btn {{ request('category') == $cat->name ? 'active-category' : '' }}">
+                        {{ $cat->name }}
+                    </a>
+                @endforeach
             </div>
         </div>
 
+        <!--=============== BOOKS GRID ===============-->
         <div class="row">
-            @foreach($books as $book)
+            @forelse($books as $book)
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
-                        <img src="{{ asset($book->cover) }}" class="card-img-top" style="height: 250px; object-fit: cover;"
-                            alt="{{ $book->title }}">
-
+                        <img src="{{ asset($book->cover ?? 'https://via.placeholder.com/250') }}" class="card-img-top"
+                            style="height: 250px; object-fit: cover;" alt="{{ $book->title }}">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title fw-bold">{{ $book->title }}</h5>
                             <p class="card-text text-muted mb-2">by {{ $book->author }}</p>
-                            <p class="card-text mb-3">{{ $book->description }}</p>
-
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-star text-warning me-1"></i>
-                                <span class="fw-bold me-1">{{ $book->rating }}</span>
-                                <small class="text-muted">({{ $book->reviews_count }} reviews)</small>
-                            </div>
+                            <p class="card-text mb-3">{{ Str::limit($book->description, 100) }}</p>
 
                             <div class="d-flex align-items-baseline mb-3">
                                 @if($book->sale_price)
@@ -144,7 +136,40 @@
                         </div>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <!-- No books found, show recommendations -->
+                <div class="col-12 text-center">
+                    <h5 class="mt-3">No results found for "{{ request('search') }}"</h5>
+
+                    @if(isset($recommended) && $recommended->isNotEmpty())
+                        <h6 class="mt-3">Recommended books from the same category:</h6>
+                        <div class="row justify-content-center">
+                            @foreach($recommended as $book)
+                                <div class="col-md-3 mb-4">
+                                    <div class="card h-100 border-warning">
+                                        <img src="{{ asset($book->cover ?? 'https://via.placeholder.com/150') }}"
+                                            class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ $book->title }}">
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title fw-bold">{{ $book->title }}</h5>
+                                            <p class="card-text text-muted mb-2">by {{ $book->author }}</p>
+                                            <p class="text-muted small">{{ $book->category->name ?? 'Uncategorized' }}</p>
+                                            <!-- Add to Cart Button -->
+                                            <form action="{{ route('cart.add', $book->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-warning mt-auto w-100">
+                                                    <i class="fas fa-shopping-cart me-1"></i> Add to Cart
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted mt-2">No recommendations available at the moment.</p>
+                    @endif
+                </div>
+            @endforelse
         </div>
     </div>
 
