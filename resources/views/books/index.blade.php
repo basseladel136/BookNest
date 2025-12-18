@@ -30,11 +30,9 @@
             <div class="d-flex justify-content-center mb-4">
                 <form method="GET" action="{{ route('books.index') }}" class="d-flex flex-grow-1 mx-3"
                     style="max-width:600px">
-                    <!-- Search Input -->
                     <input id="bookSearch" class="form-control border-warning bg-light" type="search" name="search"
                         value="{{ request('search') }}" placeholder="Search books, authors..." aria-label="Search">
 
-                    <!-- Category Dropdown -->
                     <select name="category_id" class="form-select border-warning ms-2" style="width:180px;">
                         <option value="">All Categories</option>
                         @foreach($categories as $cat)
@@ -44,7 +42,6 @@
                         @endforeach
                     </select>
 
-                    <!-- Submit Button -->
                     <button class="btn btn-warning ms-2" type="submit">Search</button>
                 </form>
             </div>
@@ -64,13 +61,29 @@
                 @endguest
 
                 @auth
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button class="btn btn-warning" type="submit">Logout</button>
-                        </form>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
+                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i>
+                            {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end floating-dropdown" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item" href="{{ route('users.profile') }}">View Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('users.edit') }}">Edit Profile</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button class="dropdown-item" type="submit">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
                     </li>
                 @endauth
+
+
 
                 <li class="nav-item ms-2">
                     <a class="btn btn-outline-warning" style="padding:.28rem .6rem;border-width:2px"
@@ -82,6 +95,9 @@
         </div>
     </nav>
 
+
+
+
     <!--=============== CATEGORIES BAR ===============-->
     <div class="container my-5">
         <div class="text-center mb-4">
@@ -91,20 +107,20 @@
                 in our carefully curated collection.
             </p>
             <div class="d-flex flex-wrap justify-content-center gap-2 mb-4" id="category-filter">
-                <a href="{{ route('books.index') }}"
-                    class="btn px-4 fw-semibold category-btn {{ !request('category') ? 'active-category' : '' }}">
+                <a href="{{ route('books.index', ['search' => request('search')]) }}"
+                    class="btn px-4 fw-semibold category-btn {{ !request('category_id') ? 'active-category' : '' }}">
                     All Books
                 </a>
                 @foreach($categories as $cat)
-                    <a href="{{ route('books.index', ['category' => $cat->name]) }}"
-                        class="btn px-4 fw-semibold category-btn {{ request('category') == $cat->name ? 'active-category' : '' }}">
+                    <a href="{{ route('books.index', ['category_id' => $cat->id, 'search' => request('search')]) }}"
+                        class="btn px-4 fw-semibold category-btn {{ request('category_id') == $cat->id ? 'active-category' : '' }}">
                         {{ $cat->name }}
                     </a>
                 @endforeach
             </div>
         </div>
 
-        <!--=============== BOOKS GRID ===============-->
+        <!-- Books Grid -->
         <div class="row">
             @forelse($books as $book)
                 <div class="col-md-4 mb-4">
@@ -137,41 +153,16 @@
                     </div>
                 </div>
             @empty
-                <!-- No books found, show recommendations -->
                 <div class="col-12 text-center">
                     <h5 class="mt-3">No results found for "{{ request('search') }}"</h5>
-
-                    @if(isset($recommended) && $recommended->isNotEmpty())
-                        <h6 class="mt-3">Recommended books from the same category:</h6>
-                        <div class="row justify-content-center">
-                            @foreach($recommended as $book)
-                                <div class="col-md-3 mb-4">
-                                    <div class="card h-100 border-warning">
-                                        <img src="{{ asset($book->cover ?? 'https://via.placeholder.com/150') }}"
-                                            class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ $book->title }}">
-                                        <div class="card-body d-flex flex-column">
-                                            <h5 class="card-title fw-bold">{{ $book->title }}</h5>
-                                            <p class="card-text text-muted mb-2">by {{ $book->author }}</p>
-                                            <p class="text-muted small">{{ $book->category->name ?? 'Uncategorized' }}</p>
-                                            <!-- Add to Cart Button -->
-                                            <form action="{{ route('cart.add', $book->id) }}" method="POST">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-warning mt-auto w-100">
-                                                    <i class="fas fa-shopping-cart me-1"></i> Add to Cart
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-muted mt-2">No recommendations available at the moment.</p>
-                    @endif
                 </div>
             @endforelse
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
 
     <script src="{{ asset('js/fundamentals.js') }}"></script>
 </body>

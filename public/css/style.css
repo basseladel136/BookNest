@@ -188,3 +188,14 @@ nav.navbar {
 }
 
 /* Reset password*/
+.floating-dropdown {
+    position: absolute !important;
+    top: 100%;
+    /* يظهر تحت الزر مباشرة */
+    right: 0;
+    /* اتاحة من الجهة اليمنى */
+    z-index: 1050;
+    /* فوق أي عناصر تانية */
+    min-width: 200px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
+}

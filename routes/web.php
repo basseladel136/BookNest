@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,4 +71,16 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/books', function () {
         return view('admin.books');
     })->name('admin.books');
+});
+
+
+Route::middleware('auth')->group(function () {
+    // عرض بيانات المستخدم
+    Route::get('users/profile', [UserController::class, 'profile'])->name('users.profile');
+
+    // عرض الفورم للتعديل
+    Route::get('users/profile/edit', [UserController::class, 'edit'])->name('users.edit');
+
+    // حفظ التعديلات
+    Route::post('users/profile/update', [UserController::class, 'update'])->name('users.profile.update');
 });

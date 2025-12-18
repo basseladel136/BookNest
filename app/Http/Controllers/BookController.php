@@ -9,23 +9,32 @@ use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
-    // الصفحة الرئيسية - عرض كل الكتب + البحث حسب التصنيف أو الاسم
+    // الصفحة الرئيسية - عرض الكتب مع فلترة وبحث
     public function index(Request $request)
     {
         $categoryId = $request->input('category_id');
         $search = $request->input('search');
 
-        $books = Book::with('category')
-            ->when($categoryId, function ($query, $categoryId) {
-                return $query->where('category_id', $categoryId);
-            })
-            ->when($search, function ($query, $search) {
-                return $query->where('title', 'like', "%{$search}%")
-                    ->orWhere('author', 'like', "%{$search}%");
-            })
-            ->get();
+        // query builder
+        $query = Book::with('category');
 
-        // Prepare recommendations if search returns empty
+        // فلترة حسب الكاتيجوري
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        // بحث حسب title أو author
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('author', 'like', "%{$search}%");
+            });
+        }
+
+        // pagination
+        $books = $query->paginate(12)->withQueryString();
+
+        // توصيات لو مفيش نتائج
         $recommended = collect();
         if ($books->isEmpty()) {
             if ($categoryId) {
@@ -36,9 +45,9 @@ class BookController extends Controller
         }
 
         $categories = Category::all();
-        return view('books.index', compact('books', 'categories', 'recommended'));
-    }
 
+        return view('books.index', compact('books', 'categories', 'recommended', 'categoryId', 'search'));
+    }
 
     // عرض form إنشاء كتاب جديد
     public function create()
@@ -60,22 +69,15 @@ class BookController extends Controller
             'sale_price' => 'nullable|numeric',
         ]);
 
-        $book = new Book();
-        $book->title = $request->title;
-        $book->author = $request->author;
-        $book->description = $request->description;
-        $book->price = $request->price;
-        $book->sale_price = $request->sale_price;
-        $book->category_id = $request->category_id;
+        $book = new Book($request->only(['title', 'author', 'description', 'price', 'sale_price', 'category_id']));
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('books', 'public');
-            $book->image = $path;
+            $book->image = $request->file('image')->store('books', 'public');
         }
 
         $book->save();
 
-        return redirect()->route('books.index');
+        return redirect()->route('books.index')->with('success', 'Book created successfully!');
     }
 
     // عرض كتاب محدد
@@ -85,7 +87,7 @@ class BookController extends Controller
         return view('books.show', compact('book'));
     }
 
-    // عرض form تعديل كتاب
+    // تعديل كتاب
     public function edit($id)
     {
         $book = Book::findOrFail($id);
@@ -107,25 +109,18 @@ class BookController extends Controller
         ]);
 
         $book = Book::findOrFail($id);
-        $book->title = $request->title;
-        $book->author = $request->author;
-        $book->description = $request->description;
-        $book->price = $request->price;
-        $book->sale_price = $request->sale_price;
-        $book->category_id = $request->category_id;
+        $book->fill($request->only(['title', 'author', 'description', 'price', 'sale_price', 'category_id']));
 
         if ($request->hasFile('image')) {
-            // حذف الصورة القديمة لو موجودة
             if ($book->image) {
                 Storage::disk('public')->delete($book->image);
             }
-            $path = $request->file('image')->store('books', 'public');
-            $book->image = $path;
+            $book->image = $request->file('image')->store('books', 'public');
         }
 
         $book->save();
 
-        return redirect()->route('books.index');
+        return redirect()->route('books.index')->with('success', 'Book updated successfully!');
     }
 
     // حذف كتاب
@@ -137,35 +132,7 @@ class BookController extends Controller
         }
         $book->delete();
 
-        return redirect()->route('books.index');
-    }
-
-    // بحث + توصيات
-    public function search(Request $request)
-    {
-        $query = $request->input('search');
-        $categoryId = $request->input('category_id');
-
-        // جلب الكتب المتوافقة مع البحث
-        $books = Book::when($query, function ($q) use ($query) {
-            $q->where('title', 'like', "%{$query}%")
-                ->orWhere('author', 'like', "%{$query}%");
-        })->get();
-
-        $categories = Category::all();
-
-        if ($books->isNotEmpty()) {
-            // لو فيه نتائج، عرضها
-            return view('books.index', compact('books', 'categories'));
-        }
-
-        // لو مفيش نتائج، عرض توصيات
-        $recommended = Book::when($categoryId, function ($q) use ($categoryId) {
-            $q->where('category_id', $categoryId);
-        })
-            ->take(5)
-            ->get();
-
-        return view('books.noresult', compact('recommended', 'query', 'categories'));
+        return redirect()->route('books.index')->with('success', 'Book deleted successfully!');
     }
 }
+

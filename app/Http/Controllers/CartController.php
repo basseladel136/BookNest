@@ -115,6 +115,7 @@ class CartController extends Controller
             'city'             => 'required|string|max:100',
             'zip_code'         => 'required|string|max:20',
             'payment_method'   => 'required|in:cod,paypal,visa_card',
+
             'card_number'      => 'required_if:payment_method,visa_card',
             'card_holder_name' => 'required_if:payment_method,visa_card',
             'expiry_date'      => 'required_if:payment_method,visa_card',
@@ -122,39 +123,45 @@ class CartController extends Controller
         ]);
 
         $cartItems = session()->get('cart', []);
+
         if (empty($cartItems)) {
             return redirect()->back()->with('error', 'Your cart is empty!');
         }
 
-        // استخدم transaction عشان لو فيه خطأ يحصل rollback
         DB::transaction(function () use ($validatedData, $cartItems) {
 
-            $checkout = new Checkout();
-            $checkout->first_name     = $validatedData['first_name'];
-            $checkout->last_name      = $validatedData['last_name'];
-            $checkout->email          = $validatedData['email'];
-            $checkout->phone_number   = $validatedData['phone_number'];
-            $checkout->address        = $validatedData['address'];
-            $checkout->city           = $validatedData['city'];
-            $checkout->zip_code       = $validatedData['zip_code'];
-            $checkout->payment_method = $validatedData['payment_method'];
-            if (Auth::check()) {
-                $checkout->user_id = Auth::id();
-            }
-            $checkout->save();
+            $checkouts = new Checkout();
+            $checkouts->first_name     = $validatedData['first_name'];
+            $checkouts->last_name      = $validatedData['last_name'];
+            $checkouts->email          = $validatedData['email'];
+            $checkouts->phone_number   = $validatedData['phone_number'];
+            $checkouts->address        = $validatedData['address'];
+            $checkouts->city           = $validatedData['city'];
+            $checkouts->zip_code       = $validatedData['zip_code'];
+            $checkouts->payment_method = $validatedData['payment_method'];
 
-            // ربط الكتب بالـ checkout مع الكمية
+            if (Auth::check()) {
+                $checkouts->user_id = Auth::id();
+            }
+
+            // 💥 أهم سطر في الدنيا
+            $checkouts->checkout_date = now();
+
+            $checkouts->save();
+
+            // attach الكتب مع الكميات
             foreach ($cartItems as $bookId => $item) {
-                $checkout->books()->attach($bookId, ['quantity' => $item['quantity']]);
+                $checkouts->books()->attach($bookId, [
+                    'quantity' => $item['quantity']
+                ]);
             }
         });
 
-        // مسح العربة
         session()->forget('cart');
 
-        // redirect مع رسالة نجاح
         return redirect()->route('books.index')->with('success', 'Order placed successfully!');
     }
+
 
     public function logout(Request $request)
     {
