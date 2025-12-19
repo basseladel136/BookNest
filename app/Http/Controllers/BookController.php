@@ -36,12 +36,21 @@ class BookController extends Controller
 
         // توصيات لو مفيش نتائج
         $recommended = collect();
-        if ($books->isEmpty()) {
-            if ($categoryId) {
-                $recommended = Book::where('category_id', $categoryId)->take(5)->get();
-            } else {
-                $recommended = Book::latest()->take(5)->get();
-            }
+        if ($categoryId) {
+            // نجيب 5 كتب من نفس الكاتيجوري، ممكن نستبعد الكتب المعروضة
+            $recommended = Book::where('category_id', $categoryId)
+                ->when($books->count(), function ($q) use ($books) {
+                    $q->whereNotIn('id', $books->pluck('id'));
+                })
+                ->take(5)
+                ->get();
+        } else {
+            $recommended = Book::latest()
+                ->when($books->count(), function ($q) use ($books) {
+                    $q->whereNotIn('id', $books->pluck('id'));
+                })
+                ->take(5)
+                ->get();
         }
 
         $categories = Category::all();
@@ -135,4 +144,3 @@ class BookController extends Controller
         return redirect()->route('books.index')->with('success', 'Book deleted successfully!');
     }
 }
-

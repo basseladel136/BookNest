@@ -59,7 +59,6 @@
                             href="{{ route('register') }}">Sign Up</a>
                     </li>
                 @endguest
-
                 @auth
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown"
@@ -67,16 +66,18 @@
                             <i class="fas fa-user-circle me-1"></i>
                             {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end floating-dropdown" aria-labelledby="profileDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end floating-dropdown shadow"
+                            aria-labelledby="profileDropdown" style="position: absolute; z-index: 1050;">
                             <li><a class="dropdown-item" href="{{ route('users.profile') }}">View Profile</a></li>
                             <li><a class="dropdown-item" href="{{ route('users.edit') }}">Edit Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('cart.my_order') }}">My Orders</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button class="dropdown-item" type="submit">Logout</button>
+                                    <button class="dropdown-item text-danger" type="submit">Logout</button>
                                 </form>
                             </li>
                         </ul>
@@ -99,6 +100,7 @@
 
 
     <!--=============== CATEGORIES BAR ===============-->
+    <!-- داخل نفس books.index.blade.php -->
     <div class="container my-5">
         <div class="text-center mb-4">
             <h1 class="fw-bold display-5 mb-3">Discover Your Next Great Read</h1>
@@ -155,10 +157,68 @@
             @empty
                 <div class="col-12 text-center">
                     <h5 class="mt-3">No results found for "{{ request('search') }}"</h5>
+
+                    @if($recommended->isNotEmpty())
+                        <p class="mt-3 mb-3">But we found some books from the same category:</p>
+                        <div class="row">
+                            @foreach($recommended as $book)
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <img src="{{ asset($book->cover ?? 'https://via.placeholder.com/250') }}"
+                                            class="card-img-top" style="height: 250px; object-fit: cover;" alt="{{ $book->title }}">
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title fw-bold">{{ $book->title }}</h5>
+                                            <p class="text-muted mb-2">by {{ $book->author }}</p>
+                                            <div class="mt-auto">
+                                                <form action="{{ route('cart.add', $book->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn w-100 text-white"
+                                                        style="background-color: #d97706;">
+                                                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @endforelse
         </div>
+
+        <!-- Recommendations (لو فيه كتب مشابهة) -->
+        @if($recommended->isNotEmpty() && $books->isNotEmpty())
+            <div class="mt-5">
+                <h5 class="mb-3">You might also like from this category:</h5>
+                <div class="row">
+                    @foreach($recommended as $book)
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <img src="{{ asset($book->cover ?? 'https://via.placeholder.com/250') }}" class="card-img-top"
+                                    style="height: 250px; object-fit: cover;" alt="{{ $book->title }}">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title fw-bold">{{ $book->title }}</h5>
+                                    <p class="text-muted mb-2">by {{ $book->author }}</p>
+                                    <div class="mt-auto">
+                                        <form action="{{ route('cart.add', $book->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn w-100 text-white"
+                                                style="background-color: #d97706;">
+                                                <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">

@@ -19,17 +19,27 @@ class Checkout extends Model
         'zip_code',
         'payment_method',
         'user_id', // لو مستخدم مسجل
+        'checkout_date',
     ];
 
-    // علاقة checkout بالكتب
+    // تحويل checkout_date إلى كائن Carbon تلقائياً
+    protected $casts = [
+        'checkout_date' => 'datetime',
+    ];
+
+    /**
+     * علاقة Checkout بالكتب
+     */
     public function books()
     {
-        return $this->belongsToMany(Book::class, 'book_checkout')->withPivot('quantity')->withTimestamps();
+        return $this->belongsToMany(Book::class, 'book_checkout')
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 
-
-
-    // علاقة checkout بالمستخدم (اختياري)
+    /**
+     * علاقة Checkout بالمستخدم (اختياري)
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

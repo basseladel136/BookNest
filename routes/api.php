@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\Admin\BookController;
 use App\Http\Controllers\Api\Admin\AuthController;
 
 // Login Admin
-Route::post('Api/admin/login', [AuthController::class, 'login']);
+Route::post('admin/login', [AuthController::class, 'login']);
 
 
 // Admin CRUD routes

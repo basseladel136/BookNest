@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -17,16 +18,23 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
+        'phone',
+        'about',
+        'favorite_genres',
     ];
+
+    protected $casts = [
+        'favorite_genres' => 'array',
+        'email_verified_at' => 'datetime',
+    ];
+
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+
 
     // علاقة المستخدم بالـ checkouts
     public function checkouts()

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-       /* Schema::create('personal_access_tokens', function (Blueprint $table) {
+        Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
             $table->morphs('tokenable');
             $table->text('name');
@@ -26,9 +26,8 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-
-   /* public function down(): void
+    public function down(): void
     {
         Schema::dropIfExists('personal_access_tokens');
-     */}
+    }
 };

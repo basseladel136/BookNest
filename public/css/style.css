@@ -199,3 +199,133 @@ nav.navbar {
     min-width: 200px;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
 }
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-body p {
+    margin-bottom: 0.5rem;
+}
+
+body {
+    background-color: #fbf6ec;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: #f97316;
+    color: #fff;
+    font-size: 42px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.card {
+    border: none;
+    border-radius: 16px;
+}
+
+.stat-box {
+    background: #f6efe4;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: bold;
+    color: #f97316;
+}
+
+.edit-btn {
+    background: #f97316;
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+.edit-btn:hover {
+    background: #ea580c;
+}
+
+.genre-badge {
+    background: #f97316;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+body {
+    background-color: #fbf6ec;
+}
+
+.card {
+    border-radius: 14px;
+    border: none;
+}
+
+.profile-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: #ef6c00;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.genre-btn {
+    border-radius: 30px;
+    padding: 8px 18px;
+    border: none;
+}
+
+.genre-active {
+    background: #2b1e14;
+    color: #fff;
+}
+
+.genre-inactive {
+    background: #f3ede2;
+    color: #000;
+}
+
+.genre-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    user-select: none;
+    transition: 0.2s;
+    display: inline-block;
+}
+
+.genre-btn.checked {
+    background-color: #EA8802;
+    /* لون برتقالي */
+    color: white;
+    border-color: #EA8802;
+}
+
+.genre-btn input {
+    display: none;
+    /* نخفي الـ checkbox */
+}

@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\UserController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -83,4 +84,9 @@ Route::middleware('auth')->group(function () {
 
     // حفظ التعديلات
     Route::post('users/profile/update', [UserController::class, 'update'])->name('users.profile.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/cart/my_order', [App\Http\Controllers\CartController::class, 'myOrders'])
+        ->name('cart.my_order'); // لاحظ الاسم هنا لازم يكون نفس اللي هتستخدمه في dropdown
 });

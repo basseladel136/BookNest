@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\Checkout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Category;
 
 class CartController extends Controller
 {
@@ -170,5 +171,23 @@ class CartController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home')->with('success', 'Logged out successfully.');
+    }
+    /**
+     * عرض صفحة My Orders
+     */
+    public function myOrders()
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return redirect()->route('login')->with('error', 'Please log in to view your orders.');
+        }
+
+        // جلب كل الأوردرات الخاصة بالمستخدم
+        $orders = Checkout::where('user_id', $user->id)
+            ->with('books') // جلب الكتب المرتبطة بكل أوردر
+            ->orderBy('checkout_date', 'desc')
+            ->get();
+        $categories = Category::all();
+        return view('cart.my_order', compact('orders', 'categories'));
     }
 }

@@ -10,12 +10,11 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $user = Auth::guard('sanctum')->user();
+        // لو API باستخدام Sanctum
+        $user = Auth::user();
 
         if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Admins only'
-            ], 403);
+            abort(403, 'Admins only');
         }
 
         return $next($request);

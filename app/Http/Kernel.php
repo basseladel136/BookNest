@@ -47,4 +47,7 @@ class Kernel extends HttpKernel
 
         // أضف ميدل وير الادمن هنا لو حبيت
     ];
+    protected $middlewareAliases = [
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+    ];
 }
