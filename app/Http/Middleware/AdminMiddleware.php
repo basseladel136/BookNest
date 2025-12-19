@@ -8,12 +8,30 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminMiddleware
 {
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
     public function handle(Request $request, Closure $next)
     {
-        // لو API باستخدام Sanctum
         $user = Auth::user();
 
-        if (!$user || $user->role !== 'admin') {
+        // لو مفيش يوزر متسجل دخول
+        if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        // لو مش أدمن
+        if ($user->role !== 'admin') {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Admins only'], 403);
+            }
             abort(403, 'Admins only');
         }
 
