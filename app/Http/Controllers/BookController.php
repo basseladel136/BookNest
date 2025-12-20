@@ -5,25 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
-    // الصفحة الرئيسية - عرض الكتب مع فلترة وبحث
     public function index(Request $request)
     {
         $categoryId = $request->input('category_id');
         $search = $request->input('search');
 
-        // query builder
         $query = Book::with('category');
 
-        // فلترة حسب الكاتيجوري
         if ($categoryId) {
             $query->where('category_id', $categoryId);
         }
 
-        // بحث حسب title أو author
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
@@ -31,72 +26,69 @@ class BookController extends Controller
             });
         }
 
-        // pagination
         $books = $query->paginate(12)->withQueryString();
 
-        // توصيات لو مفيش نتائج
-        $recommended = collect();
-        if ($categoryId) {
-            // نجيب 5 كتب من نفس الكاتيجوري، ممكن نستبعد الكتب المعروضة
-            $recommended = Book::where('category_id', $categoryId)
-                ->when($books->count(), function ($q) use ($books) {
-                    $q->whereNotIn('id', $books->pluck('id'));
-                })
-                ->take(5)
-                ->get();
-        } else {
-            $recommended = Book::latest()
-                ->when($books->count(), function ($q) use ($books) {
-                    $q->whereNotIn('id', $books->pluck('id'));
-                })
-                ->take(5)
-                ->get();
-        }
+        $recommended = $categoryId
+            ? Book::where('category_id', $categoryId)->whereNotIn('id', $books->pluck('id'))->take(5)->get()
+            : Book::latest()->whereNotIn('id', $books->pluck('id'))->take(5)->get();
 
         $categories = Category::all();
 
-        return view('books.index', compact('books', 'categories', 'recommended', 'categoryId', 'search'));
+        return view('books.index', compact(
+            'books',
+            'categories',
+            'recommended',
+            'categoryId',
+            'search'
+        ));
     }
 
-    // عرض form إنشاء كتاب جديد
     public function create()
     {
         $categories = Category::all();
         return view('books.create', compact('categories'));
     }
 
-    // حفظ كتاب جديد
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',
-            'author' => 'required',
-            'description' => 'required',
-            'price' => 'required|numeric',
+            'title'       => 'required|string',
+            'author'      => 'required|string',
+            'description' => 'required|string',
+            'price'       => 'required|numeric',
+            'sale_price'  => 'nullable|numeric',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image',
-            'sale_price' => 'nullable|numeric',
+            'cover'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $book = new Book($request->only(['title', 'author', 'description', 'price', 'sale_price', 'category_id']));
+        $book = new Book();
+        $book->title       = $request->title;
+        $book->author      = $request->author;
+        $book->description = $request->description;
+        $book->price       = $request->price;
+        $book->sale_price  = $request->sale_price;
+        $book->category_id = $request->category_id;
 
-        if ($request->hasFile('image')) {
-            $book->image = $request->file('image')->store('books', 'public');
+        if ($request->hasFile('cover')) {
+            $file = $request->file('cover');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $filename);
+            $book->cover = $filename; // يخزن الاسم فقط
         }
 
         $book->save();
 
-        return redirect()->route('books.index')->with('success', 'Book created successfully!');
+        return redirect()
+            ->route('admin.books')
+            ->with('success', 'Book created successfully');
     }
 
-    // عرض كتاب محدد
     public function show($id)
     {
         $book = Book::with('category')->findOrFail($id);
         return view('books.show', compact('book'));
     }
 
-    // تعديل كتاب
     public function edit($id)
     {
         $book = Book::findOrFail($id);
@@ -104,43 +96,62 @@ class BookController extends Controller
         return view('books.edit', compact('book', 'categories'));
     }
 
-    // تحديث كتاب
     public function update(Request $request, $id)
     {
         $request->validate([
-            'title' => 'required',
-            'author' => 'required',
-            'description' => 'required',
-            'price' => 'required|numeric',
+            'title'       => 'required|string',
+            'author'      => 'required|string',
+            'description' => 'required|string',
+            'price'       => 'required|numeric',
+            'sale_price'  => 'nullable|numeric',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image',
-            'sale_price' => 'nullable|numeric',
+            'cover'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $book = Book::findOrFail($id);
-        $book->fill($request->only(['title', 'author', 'description', 'price', 'sale_price', 'category_id']));
 
-        if ($request->hasFile('image')) {
-            if ($book->image) {
-                Storage::disk('public')->delete($book->image);
+        $book->title       = $request->title;
+        $book->author      = $request->author;
+        $book->description = $request->description;
+        $book->price       = $request->price;
+        $book->sale_price  = $request->sale_price;
+        $book->category_id = $request->category_id;
+
+        if ($request->hasFile('cover')) {
+            // حذف القديم لو موجود
+            $oldPath = public_path('images/' . $book->cover);
+            if ($book->cover && file_exists($oldPath)) {
+                unlink($oldPath);
             }
-            $book->image = $request->file('image')->store('books', 'public');
+
+            $file = $request->file('cover');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $filename);
+            $book->cover = $filename;
         }
 
         $book->save();
 
-        return redirect()->route('books.index')->with('success', 'Book updated successfully!');
+        return redirect()
+            ->route('admin.books')
+            ->with('success', 'Book updated successfully');
     }
 
-    // حذف كتاب
     public function destroy($id)
     {
         $book = Book::findOrFail($id);
-        if ($book->image) {
-            Storage::disk('public')->delete($book->image);
+
+        if ($book->cover) {
+            $oldPath = public_path('images/' . $book->cover);
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
+
         $book->delete();
 
-        return redirect()->route('books.index')->with('success', 'Book deleted successfully!');
+        return redirect()
+            ->route('admin.books')
+            ->with('success', 'Book deleted successfully');
     }
 }

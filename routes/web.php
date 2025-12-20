@@ -6,7 +6,8 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\UserController;
-
+use App\Models\Book;
+use App\Models\Category;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,30 +15,21 @@ use App\Http\Controllers\UserController;
 |--------------------------------------------------------------------------
 */
 
-// الصفحة الرئيسية (أي شخص ممكن يشوفها)
+// Home
 Route::get('/', [BookController::class, 'index'])->name('home');
 
-// إدارة الكتب (محمية بتسجيل الدخول)
+// Books CRUD (Auth)
 Route::middleware('auth')->group(function () {
     Route::resource('books', BookController::class);
 });
 
-// التسجيل
+// Auth
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// تسجيل الدخول
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/auth/login', [AuthController::class, 'login'])->name('login.post');
 
-// Quick Password Reset (عرض الفورم ومعالجته)
-Route::get('password/quick-reset', [AuthController::class, 'showQuickResetForm'])->name('password.request');
-Route::post('password/quick-reset', [AuthController::class, 'quickResetPassword'])->name('password.update');
-
-// إعادة تعيين كلمة المرور باستخدام التوكن (اختياري)
-Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
-
-// تسجيل الخروج
 Route::post('/logout', function () {
     Auth::logout();
     request()->session()->invalidate();
@@ -45,48 +37,45 @@ Route::post('/logout', function () {
     return redirect()->route('login');
 })->name('logout');
 
-// مسارات السلة والشيك أوت (محمية بتسجيل الدخول)
+// Password reset
+Route::get('password/quick-reset', [AuthController::class, 'showQuickResetForm'])->name('password.request');
+Route::post('password/quick-reset', [AuthController::class, 'quickResetPassword'])->name('password.update');
+Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+
+// Cart & Checkout
 Route::middleware('auth')->group(function () {
-    // السلة
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add/{book}', [CartController::class, 'add'])->name('cart.add');
     Route::patch('/cart/update', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 
-    // الشيك أوت
     Route::get('/cart/checkout', [CartController::class, 'checkoutView'])->name('cart.checkout');
     Route::post('/checkout', [CartController::class, 'processCheckout'])->name('checkout.process');
 
-
-    // صفحة نجاح الشيك أوت
     Route::get('/checkout/success', function () {
         return view('checkout.success');
     })->name('checkout.success');
+
+    Route::get('/cart/my_order', [CartController::class, 'myOrders'])
+        ->name('cart.my_order');
 });
-// routes/web.php
+
+// Search
 Route::get('/search', [BookController::class, 'search'])->name('books.search');
 
-
-
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/books', function () {
-        return view('admin.books');
-    })->name('admin.books');
-});
-
-
+// User Profile
 Route::middleware('auth')->group(function () {
-    // عرض بيانات المستخدم
     Route::get('users/profile', [UserController::class, 'profile'])->name('users.profile');
-
-    // عرض الفورم للتعديل
     Route::get('users/profile/edit', [UserController::class, 'edit'])->name('users.edit');
-
-    // حفظ التعديلات
     Route::post('users/profile/update', [UserController::class, 'update'])->name('users.profile.update');
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/cart/my_order', [App\Http\Controllers\CartController::class, 'myOrders'])
-        ->name('cart.my_order'); // لاحظ الاسم هنا لازم يكون نفس اللي هتستخدمه في dropdown
+// ✅ Admin Books Page (الصحيحة)
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/books', function () {
+        $books = Book::with('category')->latest()->get();
+        $categories = Category::all();
+
+        return view('admin.books', compact('books', 'categories'));
+    })->name('admin.books');
 });
