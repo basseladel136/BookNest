@@ -189,7 +189,8 @@
         </div>
 
         <!-- Recommendations (لو فيه كتب مشابهة) -->
-        @if($recommended->isNotEmpty() && $books->isNotEmpty())
+        <!-- Recommendations: تظهر فقط لو داخل كاتيجوري محددة -->
+        @if(request('category_id') && $recommended->isNotEmpty())
             <div class="mt-5">
                 <h5 class="mb-3">You might also like from this category:</h5>
                 <div class="row">
@@ -217,6 +218,7 @@
                 </div>
             </div>
         @endif
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+</head>
 
 <body>
     <!-- Navbar -->
@@ -35,74 +36,83 @@
         @endif
 
         @if(!empty($cartItems))
-            <div class="row">
-                <!-- Items Column -->
-                <div class="col-lg-8">
-                    @foreach($cartItems as $id => $details)
-                        <div class="card cart-item-card mb-3 p-3">
-                            <div class="row g-0 align-items-center">
-                                <div class="col-md-2 text-center">
-                                    <img src="{{ asset($details['cover']) }}" class="img-fluid rounded"
-                                        alt="{{ $details['title'] }}"
-                                        style="height: 100px; width: auto; max-width: 70px; object-fit: cover;">
-                                </div>
-                                <div class="col-md-5">
-                                    <div class="card-body py-0">
-                                        <h5 class="card-title fw-bold mb-1">{{ $details['title'] }}</h5>
-                                        <p class="card-text text-muted mb-2">by {{ $details['author'] }}</p>
-                                        <p class="card-text fw-bold" style="color:#d97706;">
-                                            ${{ number_format($details['price'], 2) }}</p>
+                <div class="row">
+                    <!-- Items Column -->
+                    <div class="col-lg-8">
+                        @foreach($cartItems as $id => $details)
+                            <div class="card cart-item-card mb-3 p-3">
+                                <div class="row g-0 align-items-center">
+                                    <div class="col-md-2 text-center">
+                                        <img src="{{ asset($details['cover']) }}" class="img-fluid rounded"
+                                            alt="{{ $details['title'] }}"
+                                            style="height: 100px; width: auto; max-width: 70px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="card-body py-0">
+                                            <h5 class="card-title fw-bold mb-1">{{ $details['title'] }}</h5>
+                                            <p class="card-text text-muted mb-2">by {{ $details['author'] }}</p>
+                                            <p class="card-text fw-bold" style="color:#ea8802;">
+                                                ${{ number_format($details['sale_price'] ?? $details['price'], 2) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 d-flex justify-content-center align-items-center">
+                                        <form action="{{ route('cart.update') }}" method="POST"
+                                            class="d-flex align-items-center quantity-form">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="id" value="{{ $id }}">
+                                            <button type="button" class="btn btn-light quantity-btn minus-btn">-</button>
+                                            <input type="number" name="quantity" value="{{ $details['quantity'] }}"
+                                                class="form-control quantity-input mx-2" min="1">
+                                            <button type="button" class="btn btn-light quantity-btn plus-btn">+</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-2 text-center text-md-end">
+                                        <form action="{{ route('cart.remove') }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="id" value="{{ $id }}">
+                                            <button type="submit" class="btn btn-link text-danger remove-btn p-0">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center align-items-center">
-                                    <form action="{{ route('cart.update') }}" method="POST"
-                                        class="d-flex align-items-center quantity-form">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="id" value="{{ $id }}">
-                                        <button type="button" class="btn btn-light quantity-btn minus-btn">-</button>
-                                        <input type="number" name="quantity" value="{{ $details['quantity'] }}"
-                                            class="form-control quantity-input mx-2" min="1">
-                                        <button type="button" class="btn btn-light quantity-btn plus-btn">+</button>
-                                    </form>
-                                </div>
-                                <div class="col-md-2 text-center text-md-end">
-                                    <form action="{{ route('cart.remove') }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="id" value="{{ $id }}">
-                                        <button type="submit" class="btn btn-link text-danger remove-btn p-0">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
-                                </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
+                        @endforeach
+                    </div>
 
-                <!-- Summary Column -->
-                <div class="col-lg-4">
-                    <div class="card summary-card p-4">
-                        <h4 class="fw-bold mb-4">Order Summary</h4>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Items ({{ count($cartItems) }})</span>
-                            <span>${{ number_format($subtotal, 2) }}</span>
+                    <!-- Summary Column -->
+                    <div class="col-lg-4">
+                        <div class="card summary-card p-4">
+                            <h4 class="fw-bold mb-4">Order Summary</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Items ({{ count($cartItems) }})</span>
+                                <span style="color:#ea8802; font-weight:bold;">
+                                    ${{ number_format(collect($cartItems)->sum(function ($item) {
+                return ($item['sale_price'] ?? $item['price']) * $item['quantity'];
+            }), 2) }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Shipping</span>
+                                <span class="text-success fw-semibold">Free</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                                <span>Total</span>
+                                <span style="color:#ea8802;">
+                                    ${{ number_format(collect($cartItems)->sum(function ($item) {
+                return ($item['sale_price'] ?? $item['price']) * $item['quantity'];
+            }), 2) }}
+                                </span>
+                            </div>
+                            <a href="{{ route('cart.checkout') }}" class="btn btn-warning w-100 mb-2">Proceed to Checkout</a>
+                            <a href="/" class="btn btn-warning w-100">Continue Shopping</a>
                         </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span>Shipping</span>
-                            <span class="text-success fw-semibold">Free</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
-                            <span>Total</span>
-                            <span>${{ number_format($subtotal, 2) }}</span>
-                        </div>
-                        <a href="{{ route('cart.checkout') }}">Proceed to Checkout</a>
-                        <a href="/" class="btn btn-warning w-100">Continue Shopping</a>
                     </div>
                 </div>
-            </div>
         @else
             <!-- Empty Cart -->
             <div class="row justify-content-center">
@@ -125,10 +135,9 @@
             </div>
         @endif
     </div>
-</body>
-<script src="{{asset('js/fundamentals.js')}}"></script>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-</script>
+    <script src="{{asset('js/fundamentals.js')}}"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</body>
 
 </html>

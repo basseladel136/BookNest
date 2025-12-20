@@ -13,6 +13,7 @@ class BookController extends Controller
         $categoryId = $request->input('category_id');
         $search = $request->input('search');
 
+        // 1️⃣ جلب الكتب الرئيسية
         $query = Book::with('category');
 
         if ($categoryId) {
@@ -26,11 +27,19 @@ class BookController extends Controller
             });
         }
 
-        $books = $query->paginate(12)->withQueryString();
+        $books = $query->paginate()->withQueryString(); // هذه هي الكتب الرئيسية
 
-        $recommended = $categoryId
-            ? Book::where('category_id', $categoryId)->whereNotIn('id', $books->pluck('id'))->take(5)->get()
-            : Book::latest()->whereNotIn('id', $books->pluck('id'))->take(5)->get();
+        // 2️⃣ Recommended books
+        if ($categoryId) {
+            // كتب أخرى في نفس الكاتيجوري بدون تكرار الكتب الموجودة بالفعل
+            $recommended = Book::where('category_id', $categoryId)
+                ->whereNotIn('id', $books->pluck('id'))
+                ->take(5)
+                ->get();
+        } else {
+            // صفحة All Books: يمكن تركه فارغ أو عرض أحدث 5 كتب باستثناء الكتب الحالية
+            $recommended = collect(); // ← مهم هنا فارغ عشان لا يظهر الكتاب الجديد كمقترح
+        }
 
         $categories = Category::all();
 
@@ -42,6 +51,8 @@ class BookController extends Controller
             'search'
         ));
     }
+
+
 
     public function create()
     {

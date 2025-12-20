@@ -18,10 +18,10 @@ class CartController extends Controller
     {
         $cartItems = session()->get('cart', []);
         $subtotal = 0;
-
         foreach ($cartItems as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+            $subtotal += ($item['sale_price'] ?? $item['price']) * $item['quantity'];
         }
+
 
         return view('cart.cart', compact('cartItems', 'subtotal'));
     }
@@ -41,6 +41,7 @@ class CartController extends Controller
                 'author' => $book->author,
                 'quantity' => 1,
                 'price' => $book->price,
+                'sale_price' => $book->sale_price,
                 'cover' => $book->cover
             ];
         }

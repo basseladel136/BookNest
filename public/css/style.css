@@ -329,3 +329,12 @@ body {
     display: none;
     /* نخفي الـ checkbox */
 }
+
+.btn-orange {
+    background-color: #ea8802;
+    color: white;
+}
+
+.btn-orange:hover {
+    background-color: #d77f00;
+}
